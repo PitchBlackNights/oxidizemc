@@ -1,5 +1,3 @@
-use std::error::Error;
-
 use jni::JNIEnv;
 use jni::objects::{JClass, JObject, JString, JValue};
 use jni::sys::{jint, jstring};
