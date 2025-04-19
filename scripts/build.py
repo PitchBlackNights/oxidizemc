@@ -9,7 +9,7 @@ cmd_output = subprocess.run(
 host_triple_match = re.search(r"(?<=host\: ).+", cmd_output)
 if host_triple_match == None:
     raise Exception(f"Unable to obtain host-triple!\nOutput:\n```\n{cmd_output}\n```")
-host_triple = host_triple_match.group(0)
+host_triple = host_triple_match.group(0).strip()
 
 with open("rust-toolchain.toml", "rb") as file:
     data = tomllib.load(file)
