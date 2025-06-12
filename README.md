@@ -2,6 +2,10 @@
 
 Enables you to write Minecraft Mods in Rust!
 
+## NOTICE
+
+Development has been paused because this project has basically no real purpose other than being a stupid hobby. I do fully intend to continue developing Oxidize in the future, just not right now.
+
 ## TODO
 
 - [ ] Move Mod source to this repo
