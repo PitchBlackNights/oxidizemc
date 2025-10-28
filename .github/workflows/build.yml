@@ -142,7 +142,7 @@ jobs:
       - name: "Restore platform artifacts"
         uses: ./.github/workflows/actions/multi-cache-restore
         with:
-          paths: "${{ env.ARTIFACT_CACHE_DIR }}"
+          paths: "\"${{ env.ARTIFACT_CACHE_DIR }}\""
           keys: "\"${{ join(fromJson(steps.cache-keys.outputs.keys), '\",\"') }}\""
 
       - name: "`ls **`"
