@@ -20,7 +20,7 @@ inputs:
     required: false
     default: ""
   artifact-key:
-    description: "Default: `artifact-cache-${{ github.workflow }}-${{ github.run_id }}-${{ github.run_attempt }}`"
+    description: "Default: `artifact-cache-{{ github.workflow }}-{{ github.run_id }}-{{ github.run_attempt }}`"
     required: false
     default: ""
 
