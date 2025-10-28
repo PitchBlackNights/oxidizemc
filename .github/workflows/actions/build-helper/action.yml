@@ -27,35 +27,29 @@ inputs:
 outputs:
   artifact-dir:
     description: ""
-    value: ${{ steps.cache-data.outputs.artifact-dir }}
+    value: ${{ steps.cache-data.outputs.dir }}
   artifact-key:
     description: ""
-    value: ${{ steps.cache-data.outputs.artifact-key }}
+    value: ${{ steps.cache-data.outputs.key }}
 
 runs:
   using: "composite"
   steps:
     - name: "Define cache data"
       id: cache-data
-      env:
-        # CARGO_CACHE_DIR: "cached-cargo"
-        # CARGO_CACHE_KEY: "cargo-cache-${{ github.workflow }}"
-        ARTIFACT_CACHE_DIR: "artifact-cache"
-        ARTIFACT_CACHE_KEY: "artifact-cache-${{ github.workflow }}-${{ github.run_id }}-${{ github.run_attempt }}"
-        INPUT_ARTIFACT_DIR: ${{ inputs.artifact-dir }}
-        INPUT_ARTIFACT_KEY: ${{ inputs.artifact-key }}
       shell: bash
       run: |
-        if [[ -n $INPUT_ARTIFACT_DIR ]]; then
-          ARTIFACT_CACHE_DIR="$INPUT_ARTIFACT_DIR"
+        if [[ -n "${{ inputs.artifact-dir }}" ]]; then
+          echo 'dir="${{ inputs.artifact-dir }}"' >> "$GITHUB_OUTPUT"
+        else
+          echo 'dir="artifact-cache"' >> "$GITHUB_OUTPUT"
         fi
-        if [[ -n $INPUT_ARTIFACT_KEY ]]; then
-          ARTIFACT_CACHE_KEY="$INPUT_ARTIFACT_KEY"
+        if [[ -n "${{ inputs.artifact-key }}" ]]; then
+          echo 'key="${{ inputs.artifact-key }}"' >> "$GITHUB_OUTPUT"
+        else
+          echo 'key="artifact-cache-${{ github.workflow }}-${{ github.run_id }}-${{ github.run_attempt }}"' >> "$GITHUB_OUTPUT"
         fi
-        echo 'artifact-dir="$ARTIFACT_CACHE_DIR"' >> "$GITHUB_OUTPUT"
-        echo 'artifact-key="$ARTIFACT_CACHE_KEY"' >> "$GITHUB_OUTPUT"
-      #  echo 'cargo-dir="$CARGO_CACHE_DIR"' >> "$GITHUB_OUTPUT"
-      #  echo 'cargo-key="$CARGO_CACHE_KEY"' >> "$GITHUB_OUTPUT"
+        cat "$GITHUB_OUTPUT"
 
     - name: "Get build target"
       id: build-target
@@ -86,19 +80,19 @@ runs:
           echo 'PLATFORM = "$PLATFORM"'
           exit 1
         fi
+        echo 'PLATFORM = $PLATFORM'
         cat "$GITHUB_OUTPUT"
 
     - name: "Get build dir path"
       id: build-dir
       env:
         PROFILE: ${{ inputs.profile }}
-        TARGET: ${{ steps.build-target.outputs.out }}
       shell: bash
       run: |
         if [[ $PROFILE = "dev" ]]; then
-          echo 'out="target/$TARGET/debug"' >> "$GITHUB_OUTPUT"
+          echo 'out="target/${{ steps.build-target.outputs.out }}/debug"' >> "$GITHUB_OUTPUT"
         elif [[ $PROFILE = "release" ]]; then
-          echo 'out="target/$TARGET/release"' >> "$GITHUB_OUTPUT"
+          echo 'out="target/${{ steps.build-target.outputs.out }}/release"' >> "$GITHUB_OUTPUT"
         else
           echo 'Provided profile is not valid!'
           echo 'PROFILE = $PROFILE'
@@ -110,50 +104,23 @@ runs:
       id: build-artifact
       env:
         PLATFORM: ${{ inputs.platform }}
-        BUILD_DIR: ${{ steps.build-dir.outputs.out }}
-        ARCH: ${{ steps.build-target.outputs.arch }}
-        CACHE_DIR: ${{ steps.cache-data.outputs.artifact-dir }}
       shell: bash
       run: |
         if [[ $PLATFORM = "Windows-x86_64" ]] || [[ $PLATFORM = "Windows-aarch64" ]]; then
-          echo 'src="$BUILD_DIR/oxidizemc.dll"' >> "$GITHUB_OUTPUT"
-          echo 'dest="$CACHE_DIR/oxidizemc-win-$ARCH.dll"' >> "$GITHUB_OUTPUT"
+          echo 'src="${{ steps.build-dir.outputs.out }}/oxidizemc.dll"' >> "$GITHUB_OUTPUT"
+          echo 'dest="${{ steps.cache-data.outputs.dir }}/oxidizemc-win-${{ steps.build-target.outputs.arch }}.dll"' >> "$GITHUB_OUTPUT"
         elif [[ $PLATFORM = "Linux-x86_64" ]] || [[ $PLATFORM = "Linux-aarch64" ]]; then
-          echo 'src="$BUILD_DIR/liboxidizemc.so"' >> "$GITHUB_OUTPUT"
-          echo 'dest="$CACHE_DIR/oxidizemc-linux-$ARCH.so"' >> "$GITHUB_OUTPUT"
+          echo 'src="${{ steps.build-dir.outputs.out }}/liboxidizemc.so"' >> "$GITHUB_OUTPUT"
+          echo 'dest="${{ steps.cache-data.outputs.dir }}/oxidizemc-linux-${{ steps.build-target.outputs.arch }}.so"' >> "$GITHUB_OUTPUT"
         elif [[ $PLATFORM = "macOS-x86_64" ]] || [[ $PLATFORM = "macOS-aarch64" ]]; then
-          echo 'src="$BUILD_DIR/liboxidizemc.dylib"' >> "$GITHUB_OUTPUT"
-          echo 'dest="$CACHE_DIR/oxidizemc-osx-$ARCH.dylib"' >> "$GITHUB_OUTPUT"
+          echo 'src="${{ steps.build-dir.outputs.out }}/liboxidizemc.dylib"' >> "$GITHUB_OUTPUT"
+          echo 'dest="${{ steps.cache-data.outputs.dir }}/oxidizemc-osx-${{ steps.build-target.outputs.arch }}.dylib"' >> "$GITHUB_OUTPUT"
         else
           echo 'Provided platform is not valid!'
           echo 'PLATFORM = "$PLATFORM"'
           exit 1
         fi
         cat "$GITHUB_OUTPUT"
-
-    # - name: "Restore cargo cache"
-    #   uses: actions/cache/restore@v4
-    #   with:
-    #     path: |
-    #       ${{ steps.cache-data.outputs.cargo-dir }}/bin/
-    #       ${{ steps.cache-data.outputs.cargo-dir }}/registry/index/
-    #       ${{ steps.cache-data.outputs.cargo-dir }}/registry/cache/
-    #       ${{ steps.cache-data.outputs.cargo-dir }}/git/db/
-    #       ${{ steps.build-dir.outputs.out }}/.fingerprint/
-    #       ${{ steps.build-dir.outputs.out }}/build/
-    #       ${{ steps.build-dir.outputs.out }}/deps/
-    #       ${{ steps.build-dir.outputs.out }}/incremental/
-    #       target/.rustc_info.json
-    #       target/CACHEDIR.TAG
-    #     key: ${{ steps.cache-data.outputs.cargo-key }}
-    #     enableCrossOsArchive: true
-
-    # - name: "Copy cached `.cargo` directories"
-    #   env:
-    #     CACHE_DIR: ${{ steps.cache-data.outputs.cargo-dir }}
-    #   shell: bash
-    #   run: |
-    #     cp -prf $CACHE_DIR/ ~/.cargo/
 
     - name: "`cross build`"
       uses: houseabsolute/actions-rust-cross@v1
@@ -163,56 +130,24 @@ runs:
         toolchain: ${{ inputs.toolchain }}
         args: "--locked --profile ${{ inputs.profile }}"
 
-    # - name: "Copy updated `.cargo` directories"
-    #   env:
-    #     CACHE_DIR: ${{ steps.cache-data.outputs.cargo-dir }}
-    #   shell: bash
-    #   run: |
-    #     cp -prf ~/.cargo/ $CACHE_DIR/
-
-    # - name: "Save cargo cache"
-    #   uses: actions/cache/save@v4
-    #   with:
-    #     path: |
-    #       ${{ steps.cache-data.outputs.cargo-dir }}/bin/
-    #       ${{ steps.cache-data.outputs.cargo-dir }}/registry/index/
-    #       ${{ steps.cache-data.outputs.cargo-dir }}/registry/cache/
-    #       ${{ steps.cache-data.outputs.cargo-dir }}/git/db/
-    #       ${{ steps.build-dir.outputs.out }}/.fingerprint/
-    #       ${{ steps.build-dir.outputs.out }}/build/
-    #       ${{ steps.build-dir.outputs.out }}/deps/
-    #       ${{ steps.build-dir.outputs.out }}/incremental/
-    #       target/.rustc_info.json
-    #       target/CACHEDIR.TAG
-    #     key: ${{ steps.cache-data.outputs.cargo-key }}
-    #     enableCrossOsArchive: true
-
     - name: "Restore artifact cache"
       uses: actions/cache/restore@v4
       if: ${{ inputs.cache-artifacts == 'true' }}
       with:
-        path: ${{ steps.cache-data.outputs.artifact-dir }}
-        key: ${{ steps.cache-data.outputs.artifact-key }}
+        path: ${{ steps.cache-data.outputs.dir }}
+        key: ${{ steps.cache-data.outputs.key }}
         enableCrossOsArchive: true
 
     - name: "Copy artifact to artifact cache"
       if: ${{ inputs.cache-artifacts == 'true' }}
-      env:
-        ARTIFACT_SRC: ${{ steps.build-artifact.outputs.src }}
-        ARTIFACT_DEST: ${{ steps.build-artifact.outputs.dest }}
       shell: bash
       run: |
-        cp $ARTIFACT_SRC $ARTIFACT_DEST
+        cp ${{ steps.build-artifact.outputs.src }} ${{ steps.build-artifact.outputs.dest }}
 
     - name: "Save artifact cache"
       uses: actions/cache/save@v4
       if: ${{ inputs.cache-artifacts == 'true' }}
       with:
-        path: ${{ steps.cache-data.outputs.artifact-dir }}
-        key: ${{ steps.cache-data.outputs.artifact-key }}
+        path: ${{ steps.cache-data.outputs.dir }}
+        key: ${{ steps.cache-data.outputs.key }}
         enableCrossOsArchive: true
-
-
-
-
-
