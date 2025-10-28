@@ -128,6 +128,7 @@ jobs:
       actions: write
 
     steps:
+      - uses: actions/checkout@v4
       - name: "Restore artifact cache"
         uses: actions/cache/restore@v4
         with:

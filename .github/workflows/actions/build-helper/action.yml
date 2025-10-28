@@ -38,8 +38,8 @@ runs:
     - name: "Define cache data"
       id: cache-data
       env:
-        CARGO_CACHE_DIR: "cached-cargo"
-        CARGO_CACHE_KEY: "cargo-cache-${{ github.workflow }}"
+        # CARGO_CACHE_DIR: "cached-cargo"
+        # CARGO_CACHE_KEY: "cargo-cache-${{ github.workflow }}"
         ARTIFACT_CACHE_DIR: "artifact-cache"
         ARTIFACT_CACHE_KEY: "artifact-cache-${{ github.workflow }}-${{ github.run_id }}-${{ github.run_attempt }}"
         INPUT_ARTIFACT_DIR: ${{ inputs.artifact-dir }}
@@ -48,12 +48,14 @@ runs:
       run: |
         if [[ -n $INPUT_ARTIFACT_DIR ]]; then
           ARTIFACT_CACHE_DIR="$INPUT_ARTIFACT_DIR"
+        fi
         if [[ -n $INPUT_ARTIFACT_KEY ]]; then
           ARTIFACT_CACHE_KEY="$INPUT_ARTIFACT_KEY"
+        fi
         echo 'artifact-dir="$ARTIFACT_CACHE_DIR"' >> "$GITHUB_OUTPUT"
         echo 'artifact-key="$ARTIFACT_CACHE_KEY"' >> "$GITHUB_OUTPUT"
-        echo 'cargo-dir="$CARGO_CACHE_DIR"' >> "$GITHUB_OUTPUT"
-        echo 'cargo-key="$CARGO_CACHE_KEY"' >> "$GITHUB_OUTPUT"
+      #  echo 'cargo-dir="$CARGO_CACHE_DIR"' >> "$GITHUB_OUTPUT"
+      #  echo 'cargo-key="$CARGO_CACHE_KEY"' >> "$GITHUB_OUTPUT"
 
     - name: "Get build target"
       id: build-target
@@ -129,29 +131,29 @@ runs:
         fi
         cat "$GITHUB_OUTPUT"
 
-    - name: "Restore cargo cache"
-      uses: actions/cache/restore@v4
-      with:
-        path: |
-          ${{ steps.cache-data.outputs.cargo-dir }}/bin/
-          ${{ steps.cache-data.outputs.cargo-dir }}/registry/index/
-          ${{ steps.cache-data.outputs.cargo-dir }}/registry/cache/
-          ${{ steps.cache-data.outputs.cargo-dir }}/git/db/
-          ${{ steps.build-dir.outputs.out }}/.fingerprint/
-          ${{ steps.build-dir.outputs.out }}/build/
-          ${{ steps.build-dir.outputs.out }}/deps/
-          ${{ steps.build-dir.outputs.out }}/incremental/
-          target/.rustc_info.json
-          target/CACHEDIR.TAG
-        key: ${{ steps.cache-data.outputs.cargo-key }}
-        enableCrossOsArchive: true
+    # - name: "Restore cargo cache"
+    #   uses: actions/cache/restore@v4
+    #   with:
+    #     path: |
+    #       ${{ steps.cache-data.outputs.cargo-dir }}/bin/
+    #       ${{ steps.cache-data.outputs.cargo-dir }}/registry/index/
+    #       ${{ steps.cache-data.outputs.cargo-dir }}/registry/cache/
+    #       ${{ steps.cache-data.outputs.cargo-dir }}/git/db/
+    #       ${{ steps.build-dir.outputs.out }}/.fingerprint/
+    #       ${{ steps.build-dir.outputs.out }}/build/
+    #       ${{ steps.build-dir.outputs.out }}/deps/
+    #       ${{ steps.build-dir.outputs.out }}/incremental/
+    #       target/.rustc_info.json
+    #       target/CACHEDIR.TAG
+    #     key: ${{ steps.cache-data.outputs.cargo-key }}
+    #     enableCrossOsArchive: true
 
-    - name: "Copy cached `.cargo` directories"
-      env:
-        CACHE_DIR: ${{ steps.cache-data.outputs.cargo-dir }}
-      shell: bash
-      run: |
-        cp -prf $CACHE_DIR/ ~/.cargo/
+    # - name: "Copy cached `.cargo` directories"
+    #   env:
+    #     CACHE_DIR: ${{ steps.cache-data.outputs.cargo-dir }}
+    #   shell: bash
+    #   run: |
+    #     cp -prf $CACHE_DIR/ ~/.cargo/
 
     - name: "`cross build`"
       uses: houseabsolute/actions-rust-cross@v1
@@ -161,29 +163,29 @@ runs:
         toolchain: ${{ inputs.toolchain }}
         args: "--locked --profile ${{ inputs.profile }}"
 
-    - name: "Copy updated `.cargo` directories"
-      env:
-        CACHE_DIR: ${{ steps.cache-data.outputs.cargo-dir }}
-      shell: bash
-      run: |
-        cp -prf ~/.cargo/ $CACHE_DIR/
+    # - name: "Copy updated `.cargo` directories"
+    #   env:
+    #     CACHE_DIR: ${{ steps.cache-data.outputs.cargo-dir }}
+    #   shell: bash
+    #   run: |
+    #     cp -prf ~/.cargo/ $CACHE_DIR/
 
-    - name: "Save cargo cache"
-      uses: actions/cache/save@v4
-      with:
-        path: |
-          ${{ steps.cache-data.outputs.cargo-dir }}/bin/
-          ${{ steps.cache-data.outputs.cargo-dir }}/registry/index/
-          ${{ steps.cache-data.outputs.cargo-dir }}/registry/cache/
-          ${{ steps.cache-data.outputs.cargo-dir }}/git/db/
-          ${{ steps.build-dir.outputs.out }}/.fingerprint/
-          ${{ steps.build-dir.outputs.out }}/build/
-          ${{ steps.build-dir.outputs.out }}/deps/
-          ${{ steps.build-dir.outputs.out }}/incremental/
-          target/.rustc_info.json
-          target/CACHEDIR.TAG
-        key: ${{ steps.cache-data.outputs.cargo-key }}
-        enableCrossOsArchive: true
+    # - name: "Save cargo cache"
+    #   uses: actions/cache/save@v4
+    #   with:
+    #     path: |
+    #       ${{ steps.cache-data.outputs.cargo-dir }}/bin/
+    #       ${{ steps.cache-data.outputs.cargo-dir }}/registry/index/
+    #       ${{ steps.cache-data.outputs.cargo-dir }}/registry/cache/
+    #       ${{ steps.cache-data.outputs.cargo-dir }}/git/db/
+    #       ${{ steps.build-dir.outputs.out }}/.fingerprint/
+    #       ${{ steps.build-dir.outputs.out }}/build/
+    #       ${{ steps.build-dir.outputs.out }}/deps/
+    #       ${{ steps.build-dir.outputs.out }}/incremental/
+    #       target/.rustc_info.json
+    #       target/CACHEDIR.TAG
+    #     key: ${{ steps.cache-data.outputs.cargo-key }}
+    #     enableCrossOsArchive: true
 
     - name: "Restore artifact cache"
       uses: actions/cache/restore@v4
