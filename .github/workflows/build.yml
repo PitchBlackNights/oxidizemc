@@ -50,11 +50,11 @@ jobs:
           PLATFORM: ${{ inputs.platform }}
         run: |
           if [[ $PLATFORM = "Windows-x86_64" ]] || [[ $PLATFORM = "Windows-aarch64" ]]; then
-            echo 'out="windows-latest"' >> "$GITHUB_OUTPUT"
+            echo 'out=windows-latest' >> "$GITHUB_OUTPUT"
           elif [[ $PLATFORM = "Linux-x86_64" ]] || [[ $PLATFORM = "Linux-aarch64" ]]; then
-            echo 'out="ubuntu-24.04"' >> "$GITHUB_OUTPUT"
+            echo 'out=ubuntu-24.04' >> "$GITHUB_OUTPUT"
           elif [[ $PLATFORM = "macOS-x86_64" ]] || [[ $PLATFORM = "macOS-aarch64" ]]; then
-            echo 'out="macOS-latest"' >> "$GITHUB_OUTPUT"
+            echo 'out=macOS-latest' >> "$GITHUB_OUTPUT"
           else
             echo 'Provided platform is not valid!'
             echo 'PLATFORM = "$PLATFORM"'
@@ -150,4 +150,4 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh cache delete $ARTIFACT_CACHE_DIR
+          gh cache delete $ARTIFACT_CACHE_KEY
