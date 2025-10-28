@@ -40,14 +40,14 @@ runs:
       shell: bash
       run: |
         if [[ -n "${{ inputs.artifact-dir }}" ]]; then
-          echo 'dir="${{ inputs.artifact-dir }}"' >> "$GITHUB_OUTPUT"
+          echo 'dir=${{ inputs.artifact-dir }}' >> "$GITHUB_OUTPUT"
         else
-          echo 'dir="artifact-cache"' >> "$GITHUB_OUTPUT"
+          echo 'dir=artifact-cache' >> "$GITHUB_OUTPUT"
         fi
         if [[ -n "${{ inputs.artifact-key }}" ]]; then
-          echo 'key="${{ inputs.artifact-key }}"' >> "$GITHUB_OUTPUT"
+          echo 'key=${{ inputs.artifact-key }}' >> "$GITHUB_OUTPUT"
         else
-          echo 'key="artifact-cache-${{ github.workflow }}-${{ github.run_id }}-${{ github.run_attempt }}"' >> "$GITHUB_OUTPUT"
+          echo 'key=artifact-cache-${{ github.workflow }}-${{ github.run_id }}-${{ github.run_attempt }}' >> "$GITHUB_OUTPUT"
         fi
         cat "$GITHUB_OUTPUT"
 
@@ -58,29 +58,29 @@ runs:
       shell: bash
       run: |
         if [[ $PLATFORM = "Windows-x86_64" ]]; then
-          echo 'out="x86_64-pc-windows-msvc"' >> "$GITHUB_OUTPUT"
-          echo 'arch="x86_64"' >> "$GITHUB_OUTPUT"
+          echo 'out=x86_64-pc-windows-msvc' >> "$GITHUB_OUTPUT"
+          echo 'arch=x86_64' >> "$GITHUB_OUTPUT"
         elif [[ $PLATFORM = "Windows-aarch64" ]]; then
-          echo 'out="aarch64-pc-windows-msvc"' >> "$GITHUB_OUTPUT"
-          echo 'arch="aarch64"' >> "$GITHUB_OUTPUT"
+          echo 'out=aarch64-pc-windows-msvc' >> "$GITHUB_OUTPUT"
+          echo 'arch=aarch64' >> "$GITHUB_OUTPUT"
         elif [[ $PLATFORM = "Linux-x86_64" ]]; then
-          echo 'out="x86_64-unknown-linux-gnu"' >> "$GITHUB_OUTPUT"
-          echo 'arch="x86_64"' >> "$GITHUB_OUTPUT"
+          echo 'out=x86_64-unknown-linux-gnu' >> "$GITHUB_OUTPUT"
+          echo 'arch=x86_64' >> "$GITHUB_OUTPUT"
         elif [[ $PLATFORM = "Linux-aarch64" ]]; then
-          echo 'out="aarch64-unknown-linux-gnu"' >> "$GITHUB_OUTPUT"
-          echo 'arch="aarch64"' >> "$GITHUB_OUTPUT"
+          echo 'out=aarch64-unknown-linux-gnu' >> "$GITHUB_OUTPUT"
+          echo 'arch=aarch64' >> "$GITHUB_OUTPUT"
         elif [[ $PLATFORM = "Linux-x86_64" ]]; then
-          echo 'out="x86_64-apple-darwin"' >> "$GITHUB_OUTPUT"
-          echo 'arch="x86_64"' >> "$GITHUB_OUTPUT"
+          echo 'out=x86_64-apple-darwin' >> "$GITHUB_OUTPUT"
+          echo 'arch=x86_64' >> "$GITHUB_OUTPUT"
         elif [[ $PLATFORM = "Linux-aarch64" ]]; then
-          echo 'out="aarch64-apple-darwin"' >> "$GITHUB_OUTPUT"
-          echo 'arch="aarch64"' >> "$GITHUB_OUTPUT"
+          echo 'out=aarch64-apple-darwin' >> "$GITHUB_OUTPUT"
+          echo 'arch=aarch64' >> "$GITHUB_OUTPUT"
         else
           echo 'Provided platform is not valid!'
           echo 'PLATFORM = "$PLATFORM"'
           exit 1
         fi
-        echo 'PLATFORM = $PLATFORM'
+        echo PLATFORM = $PLATFORM
         cat "$GITHUB_OUTPUT"
 
     - name: "Get build dir path"
@@ -90,9 +90,9 @@ runs:
       shell: bash
       run: |
         if [[ $PROFILE = "dev" ]]; then
-          echo 'out="target/${{ steps.build-target.outputs.out }}/debug"' >> "$GITHUB_OUTPUT"
+          echo 'out=target/${{ steps.build-target.outputs.out }}/debug' >> "$GITHUB_OUTPUT"
         elif [[ $PROFILE = "release" ]]; then
-          echo 'out="target/${{ steps.build-target.outputs.out }}/release"' >> "$GITHUB_OUTPUT"
+          echo 'out=target/${{ steps.build-target.outputs.out }}/release' >> "$GITHUB_OUTPUT"
         else
           echo 'Provided profile is not valid!'
           echo 'PROFILE = $PROFILE'
@@ -107,14 +107,14 @@ runs:
       shell: bash
       run: |
         if [[ $PLATFORM = "Windows-x86_64" ]] || [[ $PLATFORM = "Windows-aarch64" ]]; then
-          echo 'src="${{ steps.build-dir.outputs.out }}/oxidizemc.dll"' >> "$GITHUB_OUTPUT"
-          echo 'dest="${{ steps.cache-data.outputs.dir }}/oxidizemc-win-${{ steps.build-target.outputs.arch }}.dll"' >> "$GITHUB_OUTPUT"
+          echo 'src=${{ steps.build-dir.outputs.out }}/oxidizemc.dll' >> "$GITHUB_OUTPUT"
+          echo 'dest=${{ steps.cache-data.outputs.dir }}/oxidizemc-win-${{ steps.build-target.outputs.arch }}.dll' >> "$GITHUB_OUTPUT"
         elif [[ $PLATFORM = "Linux-x86_64" ]] || [[ $PLATFORM = "Linux-aarch64" ]]; then
-          echo 'src="${{ steps.build-dir.outputs.out }}/liboxidizemc.so"' >> "$GITHUB_OUTPUT"
-          echo 'dest="${{ steps.cache-data.outputs.dir }}/oxidizemc-linux-${{ steps.build-target.outputs.arch }}.so"' >> "$GITHUB_OUTPUT"
+          echo 'src=${{ steps.build-dir.outputs.out }}/liboxidizemc.so' >> "$GITHUB_OUTPUT"
+          echo 'dest=${{ steps.cache-data.outputs.dir }}/oxidizemc-linux-${{ steps.build-target.outputs.arch }}.so' >> "$GITHUB_OUTPUT"
         elif [[ $PLATFORM = "macOS-x86_64" ]] || [[ $PLATFORM = "macOS-aarch64" ]]; then
-          echo 'src="${{ steps.build-dir.outputs.out }}/liboxidizemc.dylib"' >> "$GITHUB_OUTPUT"
-          echo 'dest="${{ steps.cache-data.outputs.dir }}/oxidizemc-osx-${{ steps.build-target.outputs.arch }}.dylib"' >> "$GITHUB_OUTPUT"
+          echo 'src=${{ steps.build-dir.outputs.out }}/liboxidizemc.dylib' >> "$GITHUB_OUTPUT"
+          echo 'dest=${{ steps.cache-data.outputs.dir }}/oxidizemc-osx-${{ steps.build-target.outputs.arch }}.dylib' >> "$GITHUB_OUTPUT"
         else
           echo 'Provided platform is not valid!'
           echo 'PLATFORM = "$PLATFORM"'
