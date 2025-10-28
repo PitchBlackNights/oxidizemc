@@ -56,8 +56,8 @@ jobs:
           elif [[ $PLATFORM = "macOS-x86_64" ]] || [[ $PLATFORM = "macOS-aarch64" ]]; then
             echo 'out=macOS-latest' >> "$GITHUB_OUTPUT"
           else
-            echo 'Provided platform is not valid!'
-            echo 'PLATFORM = "$PLATFORM"'
+            echo Provided platform is not valid!
+            echo PLATFORM = $PLATFORM
             exit 1
           fi
           cat "$GITHUB_OUTPUT"
@@ -136,6 +136,8 @@ jobs:
           path: ${{ env.ARTIFACT_CACHE_DIR }}
           key: ${{ env.ARTIFACT_CACHE_KEY }}
           enableCrossOsArchive: true
+          fail-on-cache-miss: true
+        continue-on-error: true
 
       - name: "`ls **`"
         run: |

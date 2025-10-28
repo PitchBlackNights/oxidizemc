@@ -76,11 +76,10 @@ runs:
           echo 'out=aarch64-apple-darwin' >> "$GITHUB_OUTPUT"
           echo 'arch=aarch64' >> "$GITHUB_OUTPUT"
         else
-          echo 'Provided platform is not valid!'
-          echo 'PLATFORM = "$PLATFORM"'
+          echo Provided platform is not valid!
+          echo PLATFORM = $PLATFORM
           exit 1
         fi
-        echo PLATFORM = $PLATFORM
         cat "$GITHUB_OUTPUT"
 
     - name: "Get build dir path"
@@ -94,8 +93,8 @@ runs:
         elif [[ $PROFILE = "release" ]]; then
           echo 'out=target/${{ steps.build-target.outputs.out }}/release' >> "$GITHUB_OUTPUT"
         else
-          echo 'Provided profile is not valid!'
-          echo 'PROFILE = $PROFILE'
+          echo Provided profile is not valid!
+          echo PROFILE = $PROFILE
           exit 1
         fi
         cat "$GITHUB_OUTPUT"
@@ -116,8 +115,8 @@ runs:
           echo 'src=${{ steps.build-dir.outputs.out }}/liboxidizemc.dylib' >> "$GITHUB_OUTPUT"
           echo 'dest=${{ steps.cache-data.outputs.dir }}/oxidizemc-osx-${{ steps.build-target.outputs.arch }}.dylib' >> "$GITHUB_OUTPUT"
         else
-          echo 'Provided platform is not valid!'
-          echo 'PLATFORM = "$PLATFORM"'
+          echo Provided platform is not valid!
+          echo PLATFORM = $PLATFORM
           exit 1
         fi
         cat "$GITHUB_OUTPUT"
@@ -132,11 +131,18 @@ runs:
 
     - name: "Restore artifact cache"
       uses: actions/cache/restore@v4
+      id: cache
       if: ${{ inputs.cache-artifacts == 'true' }}
       with:
         path: ${{ steps.cache-data.outputs.dir }}
         key: ${{ steps.cache-data.outputs.key }}
         enableCrossOsArchive: true
+
+    - name: "`mkdir ${{ steps.cache-data.outputs.dir }}`"
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        mkdir ${{ steps.cache-data.outputs.dir }}
 
     - name: "Copy artifact to artifact cache"
       if: ${{ inputs.cache-artifacts == 'true' }}
