@@ -1,0 +1,152 @@
+name: "Build"
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: "Whether to build as dev (debug) or release"
+        required: true
+        default: "dev"
+        type: choice
+        options:
+          - dev
+          - release
+
+      platform:
+        description: "What platform(s) to build to"
+        required: false
+        type: choice
+        options:
+          - "All"
+          - "Windows-x86_64"
+          - "Windows-aarch64"
+          - "Linux-x86_64"
+          - "Linux-aarch64"
+          - "macOS-x86_64"
+          - "macOS-aarch64"
+
+      toolchain:
+        description: "What rust toolchain to use"
+        required: false
+        default: "stable"
+        type: string
+
+env:
+  ARTIFACT_CACHE_DIR: "artifact-cache"
+  ARTIFACT_CACHE_KEY: "artifact-cache-${{ github.workflow }}-${{ github.run_id }}-${{ github.run_attempt }}"
+
+jobs:
+  pre-build-one:
+    if: ${{ inputs.platform != '' }} && ${{ inputs.platform != 'All' }}
+    name: "Pre-build configuration for `build-one`"
+    runs-on: ubuntu-latest
+
+    outputs:
+      runs-on: ${{ steps.runs-on.outputs.out }}
+
+    steps:
+      - name: "Define `runs-on`"
+        id: runs-on
+        env:
+          PLATFORM: ${{ inputs.platform }}
+        run: |
+          if [[ $PLATFORM = "Windows-x86_64" ]] || [[ $PLATFORM = "Windows-aarch64" ]]; then
+            echo 'out="windows-latest"' >> "$GITHUB_OUTPUT"
+          elif [[ $PLATFORM = "Linux-x86_64" ]] || [[ $PLATFORM = "Linux-aarch64" ]]; then
+            echo 'out="ubuntu-24.04"' >> "$GITHUB_OUTPUT"
+          elif [[ $PLATFORM = "macOS-x86_64" ]] || [[ $PLATFORM = "macOS-aarch64" ]]; then
+            echo 'out="macOS-latest"' >> "$GITHUB_OUTPUT"
+          else
+            echo 'Provided platform is not valid!'
+            echo 'PLATFORM = "$PLATFORM"'
+            exit 1
+          fi
+          cat "$GITHUB_OUTPUT"
+
+  build-one:
+    needs: pre-build-one
+    name: "${{ inputs.platform }} with rust ${{ inputs.toolchain }}"
+    runs-on: ${{ needs.pre-build-one.outputs.runs-on }}
+
+    concurrency:
+      group: "${{ github.workflow }}-${{ github.ref }}-build-one-${{ inputs.platform }}"
+      cancel-in-progress: true
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Build"
+        uses: ./.github/actions/build-helper
+        with:
+          platform: ${{ inputs.platform }}
+          toolchain: ${{ inputs.toolchain }}
+          profile: ${{ inputs.profile }}
+          artifact-dir: ${{ env.ARTIFACT_CACHE_DIR }}
+          artifact-key: ${{ env.ARTIFACT_CACHE_KEY }}
+
+
+  build-all:
+    if: inputs.platform == '' || inputs.platform == 'All'
+    name: "${{ matrix.platform.os-name }} with rust ${{ inputs.toolchain }}"
+    runs-on: ${{ matrix.platform.runs-on }}
+
+    concurrency:
+      group: "${{ github.workflow }}-${{ github.ref }}-build-all"
+      cancel-in-progress: true
+
+    strategy:
+      fail-fast: true
+      matrix:
+        platform:
+          - os-name: Windows-x86_64
+            runs-on: windows-latest
+          - os-name: Windows-aarch64
+            runs-on: windows-latest
+          - os-name: Linux-x86_64
+            runs-on: ubuntu-24.04
+          - os-name: Linux-aarch64
+            runs-on: ubuntu-24.04
+          - os-name: macOS-x86_64
+            runs-on: macOS-latest
+          - os-name: macOS-aarch64
+            runs-on: macOS-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Build"
+        uses: ./.github/actions/build-helper
+        with:
+          platform: ${{ matrix.platform.os-name }}
+          toolchain: ${{ inputs.toolchain }}
+          profile: ${{ inputs.profile }}
+          artifact-dir: ${{ env.ARTIFACT_CACHE_DIR }}
+          artifact-key: ${{ env.ARTIFACT_CACHE_KEY }}
+
+
+  post-build:
+    name: "Post-build"
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs: [build-one, build-all]
+    permissions:
+      actions: write
+
+    steps:
+      - name: "Restore artifact cache"
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.ARTIFACT_CACHE_DIR }}
+          key: ${{ env.ARTIFACT_CACHE_KEY }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ inputs.platform }}
+          path: ${{ env.ARTIFACT_CACHE_DIR }}/
+          # path: |
+          #   ${{ env.ARTIFACT_CACHE_DIR }}/*.dll
+          #   ${{ env.ARTIFACT_CACHE_DIR }}/*.so
+          #   ${{ env.ARTIFACT_CACHE_DIR }}/*.dylib
+          if-no-files-found: error
+        continue-on-error: true
+
+      - name: "Cleanup cache"
+        run: |
+          gh cache delete $ARTIFACT_CACHE_DIR

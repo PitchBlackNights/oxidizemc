@@ -1,0 +1,5 @@
+{
+    "[github-actions-workflow]": {
+        "editor.tabSize": 2
+    }
+}

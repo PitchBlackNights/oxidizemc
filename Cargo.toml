@@ -1,11 +1,13 @@
 [package]
 name = "oxidizemc"
-version = "0.1.0"
-authors = ["PitchBlackNights <pitchblacknights@proton.me>"]
+version = "0.0.0-dev1"
 edition = "2024"
+authors = ["PitchBlackNights <pitchblacknights@proton.me>"]
+repository = "https://github.com/pitchblacknights/nesmur"
+license = "MIT"
 
 [dependencies]
-jni = "0.21.1"
+log = "0.4.28"
 
 [lib]
 crate-type = ["cdylib"]
