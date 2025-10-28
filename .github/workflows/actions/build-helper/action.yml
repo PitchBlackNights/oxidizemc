@@ -69,10 +69,10 @@ runs:
         elif [[ $PLATFORM = "Linux-aarch64" ]]; then
           echo 'out=aarch64-unknown-linux-gnu' >> "$GITHUB_OUTPUT"
           echo 'arch=aarch64' >> "$GITHUB_OUTPUT"
-        elif [[ $PLATFORM = "Linux-x86_64" ]]; then
+        elif [[ $PLATFORM = "macOS-x86_64" ]]; then
           echo 'out=x86_64-apple-darwin' >> "$GITHUB_OUTPUT"
           echo 'arch=x86_64' >> "$GITHUB_OUTPUT"
-        elif [[ $PLATFORM = "Linux-aarch64" ]]; then
+        elif [[ $PLATFORM = "macOS-aarch64" ]]; then
           echo 'out=aarch64-apple-darwin' >> "$GITHUB_OUTPUT"
           echo 'arch=aarch64' >> "$GITHUB_OUTPUT"
         else

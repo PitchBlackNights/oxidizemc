@@ -1,4 +1,4 @@
-name: "Build"
+name: "Build Rust"
 on:
   workflow_dispatch:
     inputs:
@@ -38,7 +38,7 @@ jobs:
   pre-build-one:
     runs-on: ubuntu-latest
     name: "Pre-build configuration for `build-one`"
-    if: ${{ inputs.platform != '' }} && ${{ inputs.platform != 'All' }}
+    if: inputs.platform != '' || inputs.platform != 'All'
 
     outputs:
       runs-on: ${{ steps.runs-on.outputs.out }}
@@ -68,7 +68,7 @@ jobs:
     needs: pre-build-one
 
     concurrency:
-      group: "${{ github.workflow }}-${{ github.ref }}-build-one-${{ inputs.platform }}"
+      group: "${{ github.workflow }}-${{ github.ref }}-build-one-${{ inputs.platform }}-${{ inputs.profile }}-${{ inputs.toolchain }}"
       cancel-in-progress: true
 
     steps:
@@ -88,7 +88,7 @@ jobs:
     if: inputs.platform == '' || inputs.platform == 'All'
 
     concurrency:
-      group: "${{ github.workflow }}-${{ github.ref }}-build-all"
+      group: "${{ github.workflow }}-${{ github.ref }}-build-all-${{ inputs.profile }}-${{ inputs.toolchain }}"
       cancel-in-progress: true
 
     strategy:
