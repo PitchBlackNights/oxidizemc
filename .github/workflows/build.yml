@@ -140,14 +140,10 @@ jobs:
 
       # Restore all platform caches
       - name: "Restore platform artifacts"
-        uses: actions/cache/restore@v4
+        uses: ./.github/workflows/actions/multi-cache-restore
         with:
-          path: ${{ env.ARTIFACT_CACHE_DIR }}
-          key: ${{ fromJson(steps.cache-keys.outputs.keys)[0] }}
-          restore-keys: |
-            ${{ join(fromJson(steps.cache-keys.outputs.keys), '\n') }}
-          enableCrossOsArchive: true
-          fail-on-cache-miss: false
+          paths: "${{ env.ARTIFACT_CACHE_DIR }}"
+          keys: "${{ join(fromJson(steps.cache-keys.outputs.keys), '\",\"') }}"
 
       - name: "`ls **`"
         run: |

@@ -1,0 +1,34 @@
+name: 'Restore cache from a list of keys'
+description: 'Allows restoring cache from a list of keys, which can be programmatically generated in the workflow.'
+
+inputs:
+  keys:
+    description: "List of keys to restore as a quoted, comma-separated list, eg 'pkg1','pkg2'"
+    required: true
+  paths:
+    description: "List of paths to restore as a quoted, comma-separated list, eg '/tmp/pkgs','/my/library'"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+      - uses: actions/setup-node@v4
+      - name: Install NPM package
+        shell: sh
+        run: npm install @actions/cache
+      - uses: actions/github-script@v7
+        name: Artifact script
+        with:
+          script: |
+            const cache = require('@actions/cache');
+            const paths = [
+                ${{ inputs.paths }}
+            ];
+            const keyList = [
+                ${{ inputs.keys }}
+            ];
+            console.log(paths);
+            console.log(keyList);
+            for (const key of keyList) {
+              const cacheKey = await cache.restoreCache(paths, key, undefined, undefined, true);
+            }
