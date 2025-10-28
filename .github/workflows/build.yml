@@ -32,7 +32,6 @@ on:
 
 env:
   ARTIFACT_CACHE_DIR: "artifact-cache"
-  ARTIFACT_CACHE_KEY: "artifact-cache-${{ github.run_id }}-${{ github.run_attempt }}"
 
 jobs:
   pre-build-one:
@@ -80,7 +79,6 @@ jobs:
           toolchain: ${{ inputs.toolchain }}
           profile: ${{ inputs.profile }}
           artifact-dir: ${{ env.ARTIFACT_CACHE_DIR }}
-          artifact-key: ${{ env.ARTIFACT_CACHE_KEY }}
 
   build-all:
     runs-on: ${{ matrix.platform.runs-on }}
@@ -117,7 +115,6 @@ jobs:
           toolchain: ${{ inputs.toolchain }}
           profile: ${{ inputs.profile }}
           artifact-dir: ${{ env.ARTIFACT_CACHE_DIR }}
-          artifact-key: ${{ env.ARTIFACT_CACHE_KEY }}
 
   post-build:
     name: "Post-build"
@@ -130,14 +127,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: "Restore artifact cache"
+      # Create array of platform-specific cache keys
+      - name: "Create platform cache keys"
+        id: cache-keys
+        run: |
+          if [[ "${{ inputs.platform }}" != "" && "${{ inputs.platform }}" != "All" ]]; then
+            echo 'keys=["artifact-cache-${{ inputs.platform }}-${{ github.run_id }}-${{ github.run_attempt }}"]' >> "$GITHUB_OUTPUT"
+          else
+            echo 'keys=["artifact-cache-Windows-x86_64-${{ github.run_id }}-${{ github.run_attempt }}", "artifact-cache-Windows-aarch64-${{ github.run_id }}-${{ github.run_attempt }}", "artifact-cache-Linux-x86_64-${{ github.run_id }}-${{ github.run_attempt }}", "artifact-cache-Linux-aarch64-${{ github.run_id }}-${{ github.run_attempt }}", "artifact-cache-macOS-x86_64-${{ github.run_id }}-${{ github.run_attempt }}", "artifact-cache-macOS-aarch64-${{ github.run_id }}-${{ github.run_attempt }}"]' >> "$GITHUB_OUTPUT"
+          fi
+        shell: bash
+
+      # Restore all platform caches
+      - name: "Restore platform artifacts"
         uses: actions/cache/restore@v4
         with:
           path: ${{ env.ARTIFACT_CACHE_DIR }}
-          key: ${{ env.ARTIFACT_CACHE_KEY }}
+          key: ${{ fromJson(steps.cache-keys.outputs.keys)[0] }}
+          restore-keys: |
+            ${{ join(fromJson(steps.cache-keys.outputs.keys), '\n') }}
           enableCrossOsArchive: true
-          fail-on-cache-miss: true
-        continue-on-error: true
+          fail-on-cache-miss: false
 
       - name: "`ls **`"
         run: |
@@ -145,18 +155,18 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.platform }}
+          name: ${{ inputs.platform || 'All' }}
           path: ${{ env.ARTIFACT_CACHE_DIR }}/
-          # path: |
-          #   ${{ env.ARTIFACT_CACHE_DIR }}/*.dll
-          #   ${{ env.ARTIFACT_CACHE_DIR }}/*.so
-          #   ${{ env.ARTIFACT_CACHE_DIR }}/*.dylib
           if-no-files-found: error
         continue-on-error: true
 
-      - name: "Cleanup cache"
+      # Clean up all platform caches
+      - name: "Cleanup platform caches"
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh cache delete $ARTIFACT_CACHE_KEY
+          for key in ${{ join(fromJson(steps.cache-keys.outputs.keys), ' ') }}; do
+            gh cache delete "$key" || true
+          done
+        shell: bash
         continue-on-error: true

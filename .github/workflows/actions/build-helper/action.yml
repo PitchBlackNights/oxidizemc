@@ -19,18 +19,6 @@ inputs:
     description: "Default: `artifact-cache`"
     required: false
     default: ""
-  artifact-key:
-    description: "Default: `artifact-cache-{{ github.workflow }}-{{ github.run_id }}-{{ github.run_attempt }}`"
-    required: false
-    default: ""
-
-outputs:
-  artifact-dir:
-    description: ""
-    value: ${{ steps.cache-data.outputs.dir }}
-  artifact-key:
-    description: ""
-    value: ${{ steps.cache-data.outputs.key }}
 
 runs:
   using: "composite"
@@ -44,11 +32,7 @@ runs:
         else
           echo 'dir=artifact-cache' >> "$GITHUB_OUTPUT"
         fi
-        if [[ -n "${{ inputs.artifact-key }}" ]]; then
-          echo 'key=${{ inputs.artifact-key }}' >> "$GITHUB_OUTPUT"
-        else
-          echo 'key=artifact-cache-${{ github.workflow }}-${{ github.run_id }}-${{ github.run_attempt }}' >> "$GITHUB_OUTPUT"
-        fi
+        echo 'key=artifact-cache-${{ inputs.platform }}-${{ github.run_id }}-${{ github.run_attempt }}' >> "$GITHUB_OUTPUT"
         cat "$GITHUB_OUTPUT"
 
     - name: "Get build target"
