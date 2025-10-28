@@ -133,6 +133,7 @@ jobs:
         with:
           path: ${{ env.ARTIFACT_CACHE_DIR }}
           key: ${{ env.ARTIFACT_CACHE_KEY }}
+          enableCrossOsArchive: true
 
       - uses: actions/upload-artifact@v4
         with:

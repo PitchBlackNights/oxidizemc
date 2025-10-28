@@ -144,6 +144,7 @@ runs:
           target/.rustc_info.json
           target/CACHEDIR.TAG
         key: ${{ steps.cache-data.outputs.cargo-key }}
+        enableCrossOsArchive: true
 
     - name: "Copy cached `.cargo` directories"
       env:
@@ -182,6 +183,7 @@ runs:
           target/.rustc_info.json
           target/CACHEDIR.TAG
         key: ${{ steps.cache-data.outputs.cargo-key }}
+        enableCrossOsArchive: true
 
     - name: "Restore artifact cache"
       uses: actions/cache/restore@v4
@@ -189,6 +191,7 @@ runs:
       with:
         path: ${{ steps.cache-data.outputs.artifact-dir }}
         key: ${{ steps.cache-data.outputs.artifact-key }}
+        enableCrossOsArchive: true
 
     - name: "Copy artifact to artifact cache"
       if: ${{ inputs.cache-artifacts == 'true' }}
@@ -205,6 +208,7 @@ runs:
       with:
         path: ${{ steps.cache-data.outputs.artifact-dir }}
         key: ${{ steps.cache-data.outputs.artifact-key }}
+        enableCrossOsArchive: true
 
 
 
