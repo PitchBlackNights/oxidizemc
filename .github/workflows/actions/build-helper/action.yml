@@ -184,8 +184,8 @@ runs:
         key: ${{ steps.cache-data.outputs.cargo-key }}
 
     - name: "Restore artifact cache"
-      if: ${{ inputs.cache-artifacts == 'true' }}
       uses: actions/cache/restore@v4
+      if: ${{ inputs.cache-artifacts == 'true' }}
       with:
         path: ${{ steps.cache-data.outputs.artifact-dir }}
         key: ${{ steps.cache-data.outputs.artifact-key }}
@@ -200,8 +200,8 @@ runs:
         cp $ARTIFACT_SRC $ARTIFACT_DEST
 
     - name: "Save artifact cache"
-      if: ${{ inputs.cache-artifacts == 'true' }}
       uses: actions/cache/save@v4
+      if: ${{ inputs.cache-artifacts == 'true' }}
       with:
         path: ${{ steps.cache-data.outputs.artifact-dir }}
         key: ${{ steps.cache-data.outputs.artifact-key }}

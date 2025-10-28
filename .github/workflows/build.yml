@@ -36,9 +36,9 @@ env:
 
 jobs:
   pre-build-one:
-    if: ${{ inputs.platform != '' }} && ${{ inputs.platform != 'All' }}
-    name: "Pre-build configuration for `build-one`"
     runs-on: ubuntu-latest
+    name: "Pre-build configuration for `build-one`"
+    if: ${{ inputs.platform != '' }} && ${{ inputs.platform != 'All' }}
 
     outputs:
       runs-on: ${{ steps.runs-on.outputs.out }}
@@ -63,9 +63,9 @@ jobs:
           cat "$GITHUB_OUTPUT"
 
   build-one:
-    needs: pre-build-one
-    name: "${{ inputs.platform }} with rust ${{ inputs.toolchain }}"
     runs-on: ${{ needs.pre-build-one.outputs.runs-on }}
+    name: "${{ inputs.platform }} with rust ${{ inputs.toolchain }}"
+    needs: pre-build-one
 
     concurrency:
       group: "${{ github.workflow }}-${{ github.ref }}-build-one-${{ inputs.platform }}"
@@ -82,11 +82,10 @@ jobs:
           artifact-dir: ${{ env.ARTIFACT_CACHE_DIR }}
           artifact-key: ${{ env.ARTIFACT_CACHE_KEY }}
 
-
   build-all:
-    if: inputs.platform == '' || inputs.platform == 'All'
-    name: "${{ matrix.platform.os-name }} with rust ${{ inputs.toolchain }}"
     runs-on: ${{ matrix.platform.runs-on }}
+    name: "${{ matrix.platform.os-name }} with rust ${{ inputs.toolchain }}"
+    if: inputs.platform == '' || inputs.platform == 'All'
 
     concurrency:
       group: "${{ github.workflow }}-${{ github.ref }}-build-all"
@@ -119,7 +118,6 @@ jobs:
           profile: ${{ inputs.profile }}
           artifact-dir: ${{ env.ARTIFACT_CACHE_DIR }}
           artifact-key: ${{ env.ARTIFACT_CACHE_KEY }}
-
 
   post-build:
     name: "Post-build"
