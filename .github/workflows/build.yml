@@ -32,13 +32,13 @@ on:
 
 env:
   ARTIFACT_CACHE_DIR: "artifact-cache"
-  ARTIFACT_CACHE_KEY: "artifact-cache-${{ github.workflow }}-${{ github.run_id }}-${{ github.run_attempt }}"
+  ARTIFACT_CACHE_KEY: "artifact-cache-${{ github.run_id }}-${{ github.run_attempt }}"
 
 jobs:
   pre-build-one:
     runs-on: ubuntu-latest
     name: "Pre-build configuration for `build-one`"
-    if: inputs.platform != '' || inputs.platform != 'All'
+    if: inputs.platform != '' && inputs.platform != 'All'
 
     outputs:
       runs-on: ${{ steps.runs-on.outputs.out }}
@@ -88,7 +88,7 @@ jobs:
     if: inputs.platform == '' || inputs.platform == 'All'
 
     concurrency:
-      group: "${{ github.workflow }}-${{ github.ref }}-build-all-${{ inputs.profile }}-${{ inputs.toolchain }}"
+      group: "${{ github.workflow }}-${{ github.ref }}-build-all-${{ matrix.platform.os-name }}-${{ inputs.profile }}-${{ inputs.toolchain }}"
       cancel-in-progress: true
 
     strategy:
