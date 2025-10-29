@@ -1,2 +1,4 @@
 **/target
-
+**/jars/*
+/scripts/java-spaghetti-gen.exe
+/scripts/java-spaghetti
